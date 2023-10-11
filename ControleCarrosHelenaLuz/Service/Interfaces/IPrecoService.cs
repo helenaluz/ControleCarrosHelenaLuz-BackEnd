@@ -9,7 +9,7 @@ namespace ControleCarrosHelenaLuz.Service.Interfaces
         public Task<List<Preco>> VerPreco();
         public Task<Preco> VerPrecoPorId(int Id);
         public Task DeletarPreco(int Id);
-        public Task EditarPreco(int Id, DTOPreco request);
+        public Task EditarPreco(int Id, Preco request);
     }
 }
 

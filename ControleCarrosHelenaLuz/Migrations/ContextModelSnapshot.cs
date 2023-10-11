@@ -36,8 +36,11 @@ namespace ControleCarrosHelenaLuz.Migrations
                     b.Property<DateTime>("ValidadeInicio")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("ValorHora")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("ValorAdicional")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ValorHora")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -62,8 +65,8 @@ namespace ControleCarrosHelenaLuz.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("ValorFinal")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double?>("ValorFinal")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 

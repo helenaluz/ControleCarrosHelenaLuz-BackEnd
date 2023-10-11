@@ -6,7 +6,7 @@
         public string Placa { get; set; } = string.Empty;
         public DateTime DataEntrada { get; set; }
         public DateTime? DataSaida { get; set; }
-        public decimal? ValorFinal { get; set; }
+        public double? ValorFinal { get; set; }
 
     }
 }

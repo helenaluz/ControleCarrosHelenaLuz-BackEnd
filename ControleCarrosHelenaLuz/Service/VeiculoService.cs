@@ -2,6 +2,8 @@
 using ControleCarrosHelenaLuz.Models.DTOs;
 using ControleCarrosHelenaLuz.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
+using System.Numerics;
 
 namespace ControleCarrosHelenaLuz.Service
 {
@@ -13,12 +15,13 @@ namespace ControleCarrosHelenaLuz.Service
         {
             _con = context;
         }
-        public  decimal CalculoValorFinal(int Id)
+
+        public  double CalculoValorFinal(int Id)
         {
             var now = DateTime.Now;
-            Preco preco =  _con.Precos.FirstOrDefault(p => p.ValidadeFim >  now);
-            decimal valorHora = preco.ValorHora;
-            decimal valorAdicional = preco.ValorAdicional;
+            Preco preco = _con.Precos.FirstOrDefault(p => p.ValidadeFim > now);
+            double valorHora = preco.ValorHora;
+            double valorAdicional = preco.ValorAdicional;
 
             Veiculo veiculo = _con.Veiculos.FirstOrDefault(v => v.Id == Id);
 
@@ -29,30 +32,24 @@ namespace ControleCarrosHelenaLuz.Service
 
             var diferenca = saida.Value - entrada;
             int minutos = (int)diferenca.TotalMinutes;
-            int horas = (int)diferenca.TotalHours;
 
-            int regrinha = minutos - (horas*60);
+            int horas = (int) Math.Ceiling(minutos / 60.0);
 
-            if (horas == 0 && minutos <= 30)  return valorHora / 2;
-            
-            if (horas > 0)
-            {
-                decimal valorTotalHoras = valorHora * horas;
-                if (regrinha <= 10) return valorTotalHoras;
-                else
-                {
-                    decimal X = valorAdicional * (horas - 1);
-                    return valorTotalHoras + valorAdicional;
-                }
-            }
+            int regrinha = minutos - (horas * 60);
 
-            return valorHora;
-            
+            if(regrinha < 0) regrinha *= (-1);
+
+            if(regrinha <= 10) horas--;
+
+            if(minutos <= 30) return valorHora / 2;
+
+            return valorHora + (horas*valorAdicional);
         }
 
         public async Task CheckOut(string placa)
         {
             Veiculo veiculo = await VerVeiculoPorPlaca(placa);
+            if (veiculo.DataSaida != null) throw new Exception("Veiculo já saiu!");
             veiculo.DataSaida = DateTime.Now;
             veiculo.ValorFinal = CalculoValorFinal(veiculo.Id);
             await _con.SaveChangesAsync();
@@ -60,6 +57,13 @@ namespace ControleCarrosHelenaLuz.Service
 
         public async Task CriarVeiculo(DTOVeiculo veiculo)
         {
+            var yey =  _con.Veiculos.Where(v => v.Placa == veiculo.Placa).ToList();
+
+            foreach(var v in yey)
+            {
+                if (!v.DataSaida.HasValue && !v.ValorFinal.HasValue) throw new Exception("Esse veiculo ainda esta estacionado");
+            }
+
             var result = new Veiculo
             {
                 Placa = veiculo.Placa,
@@ -71,6 +75,11 @@ namespace ControleCarrosHelenaLuz.Service
 
         }
 
+        public async Task<List<Veiculo>> Estacionados()
+        {
+            return _con.Veiculos.Where(v => v.DataSaida  == null).ToList(); 
+        }
+
         public async Task DeletarVeiculo(string placa)
         {
             var result = await VerVeiculoPorPlaca(placa);
@@ -79,25 +88,43 @@ namespace ControleCarrosHelenaLuz.Service
             await _con.SaveChangesAsync();
         }
 
-        public async Task EditarVeiculo(int Id, DTOVeiculo request)
+        public async Task EditarVeiculo(int Id, DTOVeiculoPut request)
         {
             var result = _con.Veiculos.FirstOrDefault(v => v.Id == Id);
-            if (result == null) return;
+            if (result == null || result.Id != request.Id) throw new Exception("IDs diferentes!");
             result.Placa = request.Placa;
             result.DataEntrada = request.DataEntrada;
             await _con.SaveChangesAsync();
         }
 
-        public async Task<Veiculo> VerVeiculoPorId(int Id)
+        public async Task<DTOVeiculoGet> VerVeiculoPorId(int Id)
         {
-            var result = await _con.Veiculos.FirstOrDefaultAsync(x => x.Id == Id);
+            var resulto = await _con.Veiculos.FirstOrDefaultAsync(x => x.Id == Id);
+
+            if (resulto == null) return null;
+
+            if (resulto.DataSaida != null) return null;
+
+            TimeSpan? tempo = DateTime.Now - resulto.DataEntrada;
+
+            DTOVeiculoGet result = new DTOVeiculoGet
+            {
+                Placa = resulto.Placa,
+                Duracao = tempo,
+                DataEntrada = resulto.DataEntrada
+            };
+
             return result;
         }
 
         public async Task<Veiculo> VerVeiculoPorPlaca(string Placa)
         {
-            var result = await _con.Veiculos.FirstOrDefaultAsync(x => x.Placa == Placa);
-            return result;
+            var resulto = await _con.Veiculos.FirstOrDefaultAsync(x => x.Placa == Placa);
+
+            if (resulto == null)  return null; 
+            
+            
+            return resulto;
         }
 
         public async Task<List<Veiculo>> VerVeiculos()

@@ -19,7 +19,8 @@ namespace ControleCarrosHelenaLuz.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ValidadeInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ValidadeFim = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ValorHora = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    ValorHora = table.Column<double>(type: "float", nullable: false),
+                    ValorAdicional = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,7 +36,7 @@ namespace ControleCarrosHelenaLuz.Migrations
                     Placa = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataEntrada = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DataSaida = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ValorFinal = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    ValorFinal = table.Column<double>(type: "float", nullable: true)
                 },
                 constraints: table =>
                 {

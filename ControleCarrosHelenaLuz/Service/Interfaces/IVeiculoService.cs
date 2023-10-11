@@ -8,11 +8,12 @@ namespace ControleCarrosHelenaLuz.Service.Interfaces
     {
         public Task CriarVeiculo(DTOVeiculo veiculo);
         public Task<List<Veiculo>> VerVeiculos();
-        public Task<Veiculo> VerVeiculoPorId(int Id);
+        public Task<DTOVeiculoGet> VerVeiculoPorId(int Id);
         Task<Veiculo> VerVeiculoPorPlaca(string Placa);
         public Task DeletarVeiculo(string placa);
-        public Task EditarVeiculo(int Id, DTOVeiculo request);
+        public Task EditarVeiculo(int Id, DTOVeiculoPut request);
+        Task<List<Veiculo>> Estacionados();
         public Task CheckOut(string placa);
-        public decimal CalculoValorFinal(int Id);
+        public double CalculoValorFinal(int Id);
     }
 }

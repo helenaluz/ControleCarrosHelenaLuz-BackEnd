@@ -2,6 +2,7 @@
 using ControleCarrosHelenaLuz.Models.DTOs;
 using ControleCarrosHelenaLuz.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,10 +25,11 @@ namespace ControleCarrosHelenaLuz.Service
                 ValidadeInicio = Preco.ValidadeInicio,
                 ValidadeFim = Preco.ValidadeFim,
                 ValorHora = Preco.ValorHora,
+                ValorAdicional = Preco.ValorAdicional
             };
 
 
-            _con.Precos.Add(resultado);
+            await _con.Precos.AddAsync(resultado);
             await _con.SaveChangesAsync();
         }
 
@@ -39,13 +41,14 @@ namespace ControleCarrosHelenaLuz.Service
             await _con.SaveChangesAsync();
         }
 
-        public async Task EditarPreco(int Id, DTOPreco request)
+        public async Task EditarPreco(int Id, Preco request)
         {
             var result = _con.Precos.FirstOrDefault(x => x.Id == Id);
-            if (result == null ) return;
+            if (result == null || result.Id != request.Id ) throw new ArgumentException("IDs diferentes!");
             result.ValidadeInicio = request.ValidadeInicio;
             result.ValidadeFim = request.ValidadeFim;
             result.ValorHora = request.ValorHora;
+            result.ValorAdicional = request.ValorAdicional;
 
             await _con.SaveChangesAsync();
         }
